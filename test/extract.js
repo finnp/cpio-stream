@@ -29,5 +29,35 @@ module.exports = function (test) {
     fs.createReadStream(path.join(__dirname,'fixtures/onefile.cpio')).pipe(unpack)
   })
   
+  test('multiple files', function (t) {
+    var unpack = cpio.extract()
+    
+    var list = [
+      './blub',
+      './blub/blubber',
+      './blub/blubber/empty.txt',
+      './blub/blubber/what.txt',
+      './blub/what.txt'
+    ]
+
+    unpack.on('entry', function (header, stream, cb) {
+      list = list.filter(function (name) {
+        return name !== header.name
+      })
+        
+      stream.on('end', function () {
+        cb()
+      })
+      stream.resume()
+    })
+    
+    unpack.on('finish', function () {
+      t.equal(list.length, 0, 'all files present')
+      t.end()
+    })
+    
+    fs.createReadStream(path.join(__dirname,'fixtures/multiple.cpio')).pipe(unpack)
+  })
+  
 }
 

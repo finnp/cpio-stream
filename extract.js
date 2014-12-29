@@ -90,7 +90,7 @@ var Extract = function(opts) {
     }
     b.consume(header._nameLength)
 
-    if(header.name === 'TRAILER!!!') return
+    if(header.name === 'TRAILER!!!') return this._cb()
 
     if (self._header.size === 0) {
       self._parse(headers.size, onheader)
