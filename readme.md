@@ -32,7 +32,23 @@ pack.pipe(process.stdout)
 
 ## Extracting
 
-`TODO`
+```js
+var extract = cpio.extract()
+
+extract.on('entry', function (header, stream, callback) {
+  stream.on('end', function () {
+    callback()
+  })
+  
+  stream.resume() // auto drain
+})
+
+extract.on('finish', function () {
+  // all entries read
+})
+
+pack.pipe(extract)
+```
 
 ## License
 MIT, with some of the code taken from the `tar-stream` module by @mafintosh

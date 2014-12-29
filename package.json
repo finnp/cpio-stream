@@ -4,7 +4,7 @@
   "description": "streaming cpio parser and packer",
   "main": "index.js",
   "scripts": {
-    "test": "node test/*.js"
+    "test": "node test/test.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/finnp/cpio-stream",
   "dependencies": {
+    "bl": "^0.9.3",
     "end-of-stream": "^1.1.0"
   },
   "devDependencies": {
