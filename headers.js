@@ -1,33 +1,32 @@
-var MAGIC = '070707'
 
-exports.size = 76
+"use strict";
 
-exports.encode = function(opts) {
-  opts.name = padEven(opts.name)
-  if (opts.size % 2 !== 0) opts.size++
+let encodeOdc = function(opts) {
+    opts.name = padEven(opts.name)
+    if (opts.size % 2 !== 0) opts.size++
 
     var buf = new Buffer(54 + 22 + opts.name.length)
 
-  buf.write(MAGIC, 0)
-  buf.write(encodeOct(opts.dev, 6), 6)
-  buf.write(encodeOct(opts.ino, 6), 12)
-  buf.write(encodeOct(opts.mode, 6), 18)
-  buf.write(encodeOct(opts.uid, 6), 24)
-  buf.write(encodeOct(opts.gid, 6), 30)
-  buf.write(encodeOct(opts.nlink, 6), 36)
-  buf.write(encodeOct(opts.rdev, 6), 42)
-  buf.write(encodeOct(opts.mtime.getTime() / 1000, 11), 48)
-  buf.write(encodeOct(opts.name.length, 6), 59)
-  buf.write(encodeOct(opts.size, 11), 65)
-  buf.write(opts.name, 76)
-  return buf
+    buf.write(MAGIC, 0)
+    buf.write(encodeOct(opts.dev, 6), 6)
+    buf.write(encodeOct(opts.ino, 6), 12)
+    buf.write(encodeOct(opts.mode, 6), 18)
+    buf.write(encodeOct(opts.uid, 6), 24)
+    buf.write(encodeOct(opts.gid, 6), 30)
+    buf.write(encodeOct(opts.nlink, 6), 36)
+    buf.write(encodeOct(opts.rdev, 6), 42)
+    buf.write(encodeOct(opts.mtime.getTime() / 1000, 11), 48)
+    buf.write(encodeOct(opts.name.length, 6), 59)
+    buf.write(encodeOct(opts.size, 11), 65)
+    buf.write(opts.name, 76)
+    return buf
 }
 
-exports.decode = function(buf) {
+let decodeOdc = function(buf) {
   // first 76  bytes
   var magic = buf.toString('ascii', 0, 6)
     // TODO: Support small endianess (707070)
-  if (magic !== '070707') throw new Error('not a cpio, expected' + MAGIC + ' but got ' + magic)
+  if (magic !== '070707') throw new Error('not a odc cpio, expected ' + MAGIC + ' but got ' + magic)
 
   var header = {}
 
@@ -59,4 +58,55 @@ function encodeOct(number, bytes) {
 function padEven(name) {
   if (name % 2 === 0) return name
   return name + '\0'
+}
+
+let decodeNewc = function(buf) {
+    var magic = buf.toString('ascii', 0, 6);
+    if (magic !== '070701') throw new Error('not a newc cpio, expected070701 but got ' + magic)
+
+    var header = {}
+    header.ino       = decodeHex(buf, 6);
+    header.mode      = decodeHex(buf, 14);
+    header.uid       = decodeHex(buf, 22);
+    header.gid       = decodeHex(buf, 30);
+    header.nlink     = decodeHex(buf, 38);
+    heder.mtime      = decodeHex(buf, 46);
+    header.filesize  = decodeHex(buf, 54);
+    header.devmajor  = decodeHex(buf, 62);
+    header.devminor  = decodeHex(buf, 70);
+    header.rdevmajor = decodeHex(buf, 78);
+    header.rdevminor = decodeHex(buf, 86);
+    header.namesize  = decodeHex(buf, 94);
+    header.check     = decodeHex(buf, 102);
+
+    return header;
+}
+
+let encodeNewc = function(opts) {
+}
+
+exports.codecs = function() {
+    "odc": {
+        // @deprecated use length instead
+        "size": 76
+        , "length": 76
+        , "magic": "070707"
+        , "encode": encodeOdc
+        , "decode": decodeOdc
+    },
+    "newc": {
+        "length": 110
+        , "magic": "070701"
+        , "encode": encodeNewc
+        , "decode": decodeNewc
+    }
+};
+
+// Return appropriate codec for a given buffer
+exports.codec = function(buf) {
+    let magic = buf.toString('ascii', 0, 6);
+    let c = codecs();
+    if (magic == '070701') return c.newc;
+    if (magic == '070707') return c.odc;
+    throw new Error('Unknown cpio magic ' + magic);
 }
