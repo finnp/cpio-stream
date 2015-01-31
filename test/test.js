@@ -4,6 +4,6 @@ var pack = require('./pack.js');
 var extract = require('./extract.js');
 var header = require('./header.js');
 
-pack(test);
+// pack(test);
 extract(test);
-header(test);
+// header(test);

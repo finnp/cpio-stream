@@ -37,6 +37,8 @@ function Pack(opts) {
   if (!(this instanceof Pack)) return new Pack(opts)
   Readable.call(this, opts)
 
+  this._codec = opts.cpioCodec || headers.odc;
+
   this.padding = 512
   this._ino = 1 // cpio on mac just increases this one every time
 
@@ -66,7 +68,7 @@ Pack.prototype.entry = function(header, buffer, callback) {
 
   if (!header.dev) header.dev = 0777777
   if (!header.ino) header.ino = this._ino++
-    if (!header.mode) header.mode = 0100644 // make this compatible with tar-stream?
+  if (!header.mode) header.mode = 0100644 // make this compatible with tar-stream?
   if (!header.uid) header.uid = 0
   if (!header.gid) header.gid = 0
   if (!header.nlink) header.nlink = 1
