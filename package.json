@@ -4,7 +4,7 @@
   "description": "streaming cpio parser and packer",
   "main": "index.js",
   "scripts": {
-    "test": "node test/test.js"
+    "test": "NODE_ENV=test node test/test.js"
   },
   "repository": {
     "type": "git",

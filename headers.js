@@ -4,6 +4,12 @@
 
 // First part of codecs definitions, can't embed encode and decoder yet
 // because function definition follows later
+let bin = {
+  "id": "bin",
+  "length": 76,
+  "magic": "070707"
+};
+
 let odc = {
   "id": "odc",
   "length": 76,
@@ -27,6 +33,8 @@ function encodeOct(number, bytes) {
   return str;
 }
 
+// According to the spec, this is wrong. Only 'old binary' format requires
+// padding, the odc/ SUSv2 format comes w/o padding.
 function padEven(name) {
   if (name % 2 === 0) return name;
   return name + '\0';
@@ -76,9 +84,50 @@ let decodeOdc = function(buf) {
   return header;
 };
 
+// Padding rules according to
+// http://people.freebsd.org/~kientzle/libarchive/man/cpio.5.txt
+
+/**
+ * Padding name and file content for type 'bin': padding on even number of bytes
+ */
+let padBinIndex = function(i) {
+  // Padding to even number of bytes
+  return (i + 1) >> 1 << 1;
+}
+
+/**
+ * Padding name and file content for type 'odc': no padding.
+ */
+let padOdcIndex = function(i) {
+  return i;
+}
+
+/**
+ * Padding name and file content for type 'newc'.
+ * @return the smallest n [n >= i] that is a multiple of 4
+ */
+let padNewcIndex = function(i) {
+  return (i + 3) >> 2 << 2;
+}
+
+/**
+ * Padding for newc, both pathname and filedata are padded to a 4 byte boundary.
+ *
+ * @return pad trailer so that length(buf + pad) is a multiple of 4.
+ */
+let pad = function(padfn, buf) {
+  // Curry support
+  if (typeof buf === 'undefined') {
+    return function(buf) {
+      return buf + '\0\0\0'.substring(0, padfn(buf.length) - buf.length)
+    }
+  }
+  return buf + '\0\0\0'.substring(0, padfn(buf.length) - buf.length)
+}
+
 let decodeHex = function(buf, pos, n) {
   n = n || 8;
-  return parseInt(buf.toString('ascii', pos, pos + n, 16));
+  return parseInt(buf.toString('ascii', pos, pos + n), 16);
 };
 
 let encodeHex = function(number, bytes) {
@@ -90,7 +139,8 @@ let encodeHex = function(number, bytes) {
 let decodeNewc = function(buf) {
   var magic = buf.toString('ascii', 0, 6);
   if (magic !== newc.magic) {
-    throw new Error(`Not a newc cpio, expected magic ${newc.magic} but got ${magic}`);
+    let msg = `Not a newc cpio, expected magic ${newc.magic} but got ${magic}`;
+    throw new Error(msg);
   }
   var header = {};
   header.ino = decodeHex(buf, 6);
@@ -142,11 +192,26 @@ let codec = function(buf) {
   throw new Error('Unknown cpio magic ' + magic);
 };
 
+//cpio 'bin' codec setup
+bin.encode = undefined;
+bin.decode = undefined;
+bin.padIndex = padBinIndex;
+bin.pad = pad(padBinIndex);
+
+// cpio 'odc' codec setup
 odc.encode = encodeOdc;
 odc.decode = decodeOdc;
+odc.padIndex = padOdcIndex;
+odc.pad = pad(padOdcIndex);
+
+// cpio 'newc' codec setup
 newc.encode = encodeNewc;
 newc.decode = decodeNewc;
+newc.padIndex = padNewcIndex;
+newc.pad = pad(padNewcIndex);
 
+// Standard exports
+exports.bin = bin
 exports.odc = odc;
 exports.newc = newc;
 exports.codec = codec;
@@ -155,3 +220,16 @@ exports.codec = codec;
 exports.size = odc.length;
 exports.encode = encodeOdc;
 exports.decode = decodeOdc;
+
+// Testing
+if (process.env.NODE_ENV === "test") {
+  exports.decodeHex = decodeHex;
+  exports.encodeHex = encodeHex;
+  exports.decodeOct = decodeOct;
+  exports.encodeOct = encodeOct;
+
+  exports.padBinIndex = padBinIndex;
+  exports.padOdcIndex = padOdcIndex;
+  exports.padNewcIndex = padNewcIndex;
+  exports.pad = pad;
+}

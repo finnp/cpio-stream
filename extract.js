@@ -57,7 +57,17 @@ var Extract = function(opts) {
 
   function onstreamend() {
     self._stream = null;
-    self._buffer.consume(self._header.fileSize);
+    // Padding must happen on absolute position of name, not on length of name
+    // Current position is header + padded name + fileSize
+    var c = self._codec;
+    var h = self._header;
+    var pos = c.length + c.padIndex(h.name.length) + h.fileSize;
+    var p = c.padIndex(pos);
+    // Number of bytes to consume: original size + pad
+    var n = h.fileSize + (p - pos);
+    console.log(`Padding fileSize from ${pos} to ${p}`);
+    console.log(`onstreamend(): consuming ${n} bytes`);
+    self._buffer.consume(n);
     self._parseTransparent(headers.odc.magic.length, onmagic);
     if (!self._locked) oncontinue();
   }
@@ -111,8 +121,15 @@ var Extract = function(opts) {
     } catch (err) {
       self.emit('error', err);
     }
-    console.log('onname(): consuming ' + header.nameSize + ' bytes from ' + b);
-    b.consume(header.nameSize);
+    // Padding must happen on absolute position of name, not on length of name
+    // Current position is size of header + size of name
+    var pos = codec.length + header.nameSize;
+    var p = codec.padIndex(pos);
+    // Number of bytes to consume: original size + pad
+    var n = header.nameSize + (p - pos);
+    console.log(`Padding name length from ${pos} to ${p} for codec ${codec.id}`);
+    console.log('onname(): consuming ' + n + ' bytes from ' + b);
+    b.consume(n);
 
     if (header.name === 'TRAILER!!!') return this._cb();
 

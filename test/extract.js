@@ -4,6 +4,7 @@ var path = require('path')
 var concat = require('concat-stream')
 
 module.exports = function(test) {
+/*
   test('simple unpack', function(t) {
     var unpack = cpio.extract()
     t.plan(9)
@@ -57,16 +58,15 @@ module.exports = function(test) {
 
     fs.createReadStream(path.join(__dirname, 'fixtures/multiple.cpio')).pipe(unpack)
   })
-/*
+*/
+  // -rwxr-xr-x   1 root     root         6136 Jan  4  2004 ./bin/mktemp
+  // -rw-r--r--   1 root     root         2160 Jan  4  2004 ./usr/share/man/man1/mktemp.1.bz2
   test('RPM payload', function(t) {
     var unpack = cpio.extract();
 
     var list = [
-      './blub',
-      './blub/blubber',
-      './blub/blubber/empty.txt',
-      './blub/blubber/what.txt',
-      './blub/what.txt'
+      './bin/mktemp',
+      './usr/share/man/man1/mktemp.1.bz2'
     ]
 
     unpack.on('entry', function(header, stream, cb) {
@@ -87,5 +87,4 @@ module.exports = function(test) {
 
     fs.createReadStream(path.join(__dirname, 'fixtures/mktemp-1.5-12sls.i586.cpio')).pipe(unpack)
   })
-*/
 }
