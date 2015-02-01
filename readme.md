@@ -1,4 +1,5 @@
 # cpio-stream
+
 `cpio-stream` is a streaming cpio packer. It is basically the `cpio` version
 on [tar-stream](https://github.com/mafintosh/tar-stream).
 
