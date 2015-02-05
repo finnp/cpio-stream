@@ -1,5 +1,11 @@
 # cpio-stream
 
+[![Build Status](https://travis-ci.org/jhinrichsen/cpio-stream.png?branch=master)](https://travis-ci.org/jhinrichsen/cpio-stream)
+[![BSD](http://b.repl.ca/v1/license-MIT-blue.png)](http://en.wikipedia.org/wiki/BSD_licenses)
+[![ECMAScript](http://b.repl.ca/v1/language-ECMAScript-blue.png)](http://www.ecmascript.org/)
+
+
+
 `cpio-stream` is a streaming cpio packer. It is basically the `cpio` version
 on [tar-stream](https://github.com/mafintosh/tar-stream).
 
