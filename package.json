@@ -4,6 +4,9 @@
   "description": "streaming cpio parser and packer",
   "main": "index.js",
   "scripts": {
+    "doc": "yuidoc .",
+    "fmt": "js-beautify --replace --no-preserve-newlines --wrap-line-length=79 -aj --good-stuff *.js test/*.js",
+    "lint": "jshint *.js",
     "test": "NODE_ENV=test node test/test.js"
   },
   "repository": {
@@ -23,5 +26,11 @@
   "devDependencies": {
     "concat-stream": "^1.4.7",
     "tape": "^3.0.3"
+  },
+  "jshintConfig": { 
+    "enforceall": true,
+    "maxlen": "79",
+    "nocomma": false,
+    "node": true
   }
 }
