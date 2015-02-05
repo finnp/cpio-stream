@@ -163,7 +163,7 @@ var padNewcIndex = function (i) {
  */
 var pad = function (padfn, buf) {
     // Curry support
-    if (buf === 'undefined') {
+    if (typeof buf === 'undefined') {
         return function (buf) {
             return buf + '\x00\x00\x00'.substring(0, padfn(buf.length) -
                 buf.length);
