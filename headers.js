@@ -1,4 +1,4 @@
-/*jslint bitwise: true, node: true, maxlen: 79, vars: true*/
+/* jshint bitwise: false */
 
 "use strict";
 
