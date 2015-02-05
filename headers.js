@@ -2,26 +2,59 @@
 
 "use strict";
 
+/**
+ * Codec implementation.
+ * @class Codec
+ */
+
 // First part of codecs definitions, can't embed encode and decoder yet
 // because function definition follows later
+
+/**
+ * Codec for cpio <code>bin</code> format.
+ *
+ * @property bin
+ * @type object
+ */
 let bin = {
   "id": "bin",
   "length": 76,
   "magic": "070707"
 };
 
+/**
+ * Codec for cpio <code>odc</code> format.
+ *
+ * @property odc
+ * @type object
+ */
 let odc = {
   "id": "odc",
   "length": 76,
   "magic": "070707"
 };
 
+/**
+ * Codec for cpio <code>newc</code> format.
+ *
+ * @property newc
+ * @type object
+ */
 let newc = {
   "id": "newc",
   "length": 110,
   "magic": "070701",
 };
 
+/**
+ * Decode an octal encoded <code>bin</code> or <code>odc</code> buffer.
+ *
+ * @method decodeOct
+ * @param {Array} buf input buffer
+ * @param {Number} pos position to read from
+ * @param {Number} n read n bytes
+ * @return {Number} decoded value
+ */
 function decodeOct(buf, pos, n) {
   n = n || 6;
   return parseInt(buf.toString('ascii', pos, pos + n), 8);
@@ -89,14 +122,19 @@ let decodeOdc = function(buf) {
 
 /**
  * Padding name and file content for type 'bin': padding on even number of bytes
+ *
+ * @method padBinIndex
+ * @param {Number} index
+ * @param {Number} aligned index for cpio type <code>bin</code>
  */
 let padBinIndex = function(i) {
-  // Padding to even number of bytes
   return (i + 1) >> 1 << 1;
 }
 
 /**
  * Padding name and file content for type 'odc': no padding.
+ *
+ * @method padOdcIndex
  */
 let padOdcIndex = function(i) {
   return i;
@@ -104,6 +142,8 @@ let padOdcIndex = function(i) {
 
 /**
  * Padding name and file content for type 'newc'.
+ *
+ * @method padNewcIndex
  * @return the smallest n [n >= i] that is a multiple of 4
  */
 let padNewcIndex = function(i) {
@@ -113,6 +153,7 @@ let padNewcIndex = function(i) {
 /**
  * Padding for newc, both pathname and filedata are padded to a 4 byte boundary.
  *
+ * @method pad
  * @return pad trailer so that length(buf + pad) is a multiple of 4.
  */
 let pad = function(padfn, buf) {
@@ -124,6 +165,52 @@ let pad = function(padfn, buf) {
   }
   return buf + '\0\0\0'.substring(0, padfn(buf.length) - buf.length)
 }
+
+/**
+ * Zero padding (<code>\0</code>) must happen on absolute position of name in
+ * cpio structure, not on length of name. A shortcut is to use the current
+ * header position and assume is already correctly aligned.
+ * Padding happens after the name, so position is
+ * <code>align(sizeof(header) + sizeof(name))</code>.
+ *
+ * @method alignedName
+ * @param {object} codec codec context
+ * @param {object} header header context
+ * @return length of name + number of padded bytes
+ */
+let alignedName = function(codec, header) {
+  let pos = codec.length + header.nameSize;
+  let p = codec.padIndex(pos);
+  // Number of bytes to consume: original size + pad
+  var n = header.nameSize + (p - pos);
+  return n;
+};
+
+/**
+ * Zero padding (<code>\0</code>) must happen on absolute position of name in
+ * cpio structure, not on length of name. A shortcut is to use the current
+ * header position and assume is already correctly aligned.
+ * Padding happens after the file content, so position is the sum of
+ * <ol>
+ *   <li>sizeof(header)</li>
+ *   <li>sizeof(aligned name)</li>
+ *   <li>sizeof(aligned file size)</li>
+ * </ol>
+ *
+ * @method alignedName
+ * @param {object} codec codec context
+ * @param {object} header header context
+ * @return padded nameIndex
+ */
+let alignedFileSize = function(codec, header) {
+  let pos = codec.length
+      + codec.alignedName(header.nameSize)
+      + header.fileSize;
+  let p = codec.padIndex(pos);
+  // Number of bytes to consume: original size + pad
+  var n = header.fileSize + (p - pos);
+  return n;
+};
 
 let decodeHex = function(buf, pos, n) {
   n = n || 8;
@@ -160,6 +247,13 @@ let decodeNewc = function(buf) {
   return header;
 };
 
+/**
+ * Encode options in cpio <code>newc</code> format.
+ *
+ * @method encodeNewc
+ * @param {object} opts cpio <code>newc</code> header
+ * @return {Buffer} encoded buffer
+ */
 let encodeNewc = function(opts) {
   opts.name = padEven(opts.name);
   if (opts.nameSize % 2 !== 0) opts.nameSize++;
@@ -184,7 +278,13 @@ let encodeNewc = function(opts) {
   return buf;
 };
 
-// Return appropriate codec for a given buffer
+/**
+ * Determine codec for a given buffer.
+ *
+ * @method codec
+ * @param {Array} buf input buffer
+ * @return appropriate codec for a given buffer
+ */
 let codec = function(buf) {
   let magic = buf.toString('ascii', 0, 6);
   if (magic == newc.magic) return newc;
@@ -197,18 +297,36 @@ bin.encode = undefined;
 bin.decode = undefined;
 bin.padIndex = padBinIndex;
 bin.pad = pad(padBinIndex);
+bin.alignedName = function(header) {
+  return alignedName(bin, header);
+};
+bin.alignedFileSize = function(header) {
+  return alignedFileSize(bin, header);
+};
 
 // cpio 'odc' codec setup
 odc.encode = encodeOdc;
 odc.decode = decodeOdc;
 odc.padIndex = padOdcIndex;
 odc.pad = pad(padOdcIndex);
+odc.alignedName = function(header) {
+  return alignedName(odc, header);
+};
+odc.alignedFileSize = function(header) {
+  return alignedFileSize(odc, header);
+};
 
 // cpio 'newc' codec setup
 newc.encode = encodeNewc;
 newc.decode = decodeNewc;
 newc.padIndex = padNewcIndex;
 newc.pad = pad(padNewcIndex);
+newc.alignedName = function(header) {
+  return alignedName(newc, header);
+};
+newc.alignedFileSize = function(header) {
+  return alignedName(newc, header);
+};
 
 // Standard exports
 exports.bin = bin
