@@ -1,6 +1,6 @@
 {
   "name": "cpio-stream",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "streaming cpio parser and packer",
   "main": "index.js",
   "scripts": {
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/finnp/cpio-stream.git"
+    "url": "https://github.com/jhinrichsen/cpio-stream.git"
   },
-  "author": "Finn Pauls",
+  "author": "Jochen Hinrichsen",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/finnp/cpio-stream/issues"
+    "url": "https://github.com/jhinrichsen/cpio-stream/issues"
   },
-  "homepage": "https://github.com/finnp/cpio-stream",
+  "homepage": "https://github.com/jhinrichsen/cpio-stream",
   "dependencies": {
     "bl": "^0.9.3",
     "end-of-stream": "^1.1.0"
