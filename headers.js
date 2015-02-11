@@ -4,17 +4,17 @@
 
 // First part of codecs definitions, can't embed encode and decoder yet
 // because function definition follows later
-let codecs = {
-  "odc": {
-    "length": 76,
-    "magic": "070707",
-  },
-  "newc": {
-    "length": 110,
-    "magic": "070701",
-  }
+let odc = {
+  "id": "odc",
+  "length": 76,
+  "magic": "070707"
 };
 
+let newc = {
+  "id": "newc",
+  "length": 110,
+  "magic": "070701",
+};
 
 let encodeOdc = function(opts) {
   opts.name = padEven(opts.name);
@@ -22,7 +22,7 @@ let encodeOdc = function(opts) {
 
   var buf = new Buffer(54 + 22 + opts.name.length);
 
-  buf.write(codecs.odc.magic, 0);
+  buf.write(odc.magic, 0);
   buf.write(encodeOct(opts.dev, 6), 6);
   buf.write(encodeOct(opts.ino, 6), 12);
   buf.write(encodeOct(opts.mode, 6), 18);
@@ -41,8 +41,8 @@ let decodeOdc = function(buf) {
   // first 76  bytes
   var magic = buf.toString('ascii', 0, 6);
   // TODO: Support small endianess (707070)
-  if (magic !== codecs.odc.magic) {
-    throw new Error(`Not an odc cpio, expected ${codecs.odc.magic} but got ${magic}`);
+  if (magic !== odc.magic) {
+    throw new Error(`Not an odc cpio, expected ${odc.magic} but got ${magic}`);
   }
   var header = {};
 
@@ -89,8 +89,8 @@ let encodeHex = function(number, bytes) {
 
 let decodeNewc = function(buf) {
   var magic = buf.toString('ascii', 0, 6);
-  if (magic !== codecs.newc.magic) {
-    throw new Error(`Not a newc cpio, expected magic ${codecs.newc.magic} but got ${magic}`);
+  if (magic !== newc.magic) {
+    throw new Error(`Not a newc cpio, expected magic ${newc.magic} but got ${magic}`);
   }
   var header = {};
   header.ino = decodeHex(buf, 6);
@@ -116,7 +116,7 @@ let encodeNewc = function(opts) {
 
   var buf = new Buffer(110 + opts.name.length);
 
-  buf.write(codecs.newc.magic, 0);
+  buf.write(newc.magic, 0);
   buf.write(encodeHex(opts.ino, 8), 6);
   buf.write(encodeHex(opts.mode, 8), 14);
   buf.write(encodeHex(opts.uid, 8), 22);
@@ -137,19 +137,21 @@ let encodeNewc = function(opts) {
 // Return appropriate codec for a given buffer
 let codec = function(buf) {
   let magic = buf.toString('ascii', 0, 6);
-  if (magic == codecs.newc.magic) return codecs.newc;
-  if (magic == codecs.odc.magic) return codecs.odc;
+  if (magic == newc.magic) return newc;
+  if (magic == odc.magic) return odc;
   throw new Error('Unknown cpio magic ' + magic);
 };
 
-codecs.odc.encode = encodeOdc;
-codecs.odc.decode = decodeOdc;
-codecs.newc.encode = encodeNewc;
-codecs.newc.decode = decodeNewc;
-exports.codecs = codecs;
+odc.encode = encodeOdc;
+odc.decode = decodeOdc;
+newc.encode = encodeNewc;
+newc.decode = decodeNewc;
 
+exports.odc = odc;
+exports.newc = newc;
+exports.codec = codec;
 
 // Keep 1.0.0 compatibility: odc by default
-exports.size = codecs.odc.length;
-exports.encode = codecs.odc.encode;
-exports.decode = codecs.odc.decode;
+exports.size = odc.length;
+exports.encode = encodeOdc;
+exports.decode = decodeOdc;
