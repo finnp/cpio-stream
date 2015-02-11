@@ -58,4 +58,34 @@ module.exports = function(test) {
 
     fs.createReadStream(path.join(__dirname, 'fixtures/multiple.cpio')).pipe(unpack)
   })
+
+  test('RPM payload', function(t) {
+    var unpack = cpio.header.newc;
+
+    var list = [
+      './blub',
+      './blub/blubber',
+      './blub/blubber/empty.txt',
+      './blub/blubber/what.txt',
+      './blub/what.txt'
+    ]
+
+    unpack.on('entry', function(header, stream, cb) {
+      list = list.filter(function(name) {
+        return name !== header.name
+      })
+
+      stream.on('end', function() {
+        cb()
+      })
+      stream.resume()
+    })
+
+    unpack.on('finish', function() {
+      t.equal(list.length, 0, 'all files present')
+      t.end()
+    })
+
+    fs.createReadStream(path.join(__dirname, 'fixtures/mktemp-1.5-12sls.i586.cpio')).pipe(unpack)
+  })
 }
