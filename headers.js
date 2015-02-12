@@ -16,6 +16,22 @@ let newc = {
   "magic": "070701",
 };
 
+function decodeOct(buf, pos, n) {
+  n = n || 6;
+  return parseInt(buf.toString('ascii', pos, pos + n), 8);
+}
+
+function encodeOct(number, bytes) {
+  var str = (Math.min(number, Math.pow(8, bytes) - 1)).toString(8);
+  str = new Array(bytes - str.length + 1).join('0') + str;
+  return str;
+}
+
+function padEven(name) {
+  if (name % 2 === 0) return name;
+  return name + '\0';
+}
+
 let encodeOdc = function(opts) {
   opts.name = padEven(opts.name);
   if (opts.size % 2 !== 0) opts.size++;
@@ -59,22 +75,6 @@ let decodeOdc = function(buf) {
 
   return header;
 };
-
-function decodeOct(buf, pos, n) {
-  n = n || 6;
-  return parseInt(buf.toString('ascii', pos, pos + n), 8);
-}
-
-function encodeOct(number, bytes) {
-  var str = (Math.min(number, Math.pow(8, bytes) - 1)).toString(8);
-  str = new Array(bytes - str.length + 1).join('0') + str;
-  return str;
-}
-
-function padEven(name) {
-  if (name % 2 === 0) return name;
-  return name + '\0';
-}
 
 let decodeHex = function(buf, pos, n) {
   n = n || 8;
@@ -152,6 +152,6 @@ exports.newc = newc;
 exports.codec = codec;
 
 // Keep 1.0.0 compatibility: odc by default
-exports.size = odc.length;
+// TODO export exports.size = odc.length;
 exports.encode = encodeOdc;
 exports.decode = decodeOdc;
