@@ -34,7 +34,7 @@ function padEven(name) {
 
 let encodeOdc = function(opts) {
   opts.name = padEven(opts.name);
-  if (opts.size % 2 !== 0) opts.size++;
+  if (opts.nameSize % 2 !== 0) opts.nameSize++;
 
   var buf = new Buffer(54 + 22 + opts.name.length);
 
@@ -48,7 +48,7 @@ let encodeOdc = function(opts) {
   buf.write(encodeOct(opts.rdev, 6), 42);
   buf.write(encodeOct(opts.mtime.getTime() / 1000, 11), 48);
   buf.write(encodeOct(opts.name.length, 6), 59);
-  buf.write(encodeOct(opts.size, 11), 65);
+  buf.write(encodeOct(opts.fileSize, 11), 65);
   buf.write(opts.name, 76);
   return buf;
 };
@@ -70,8 +70,8 @@ let decodeOdc = function(buf) {
   header.nlink = decodeOct(buf, 36);
   header.rdev = decodeOct(buf, 42);
   header.mtime = new Date(decodeOct(buf, 48, 11) * 1000);
-  header._nameLength = decodeOct(buf, 59);
-  header.size = decodeOct(buf, 65, 11);
+  header.nameSize = decodeOct(buf, 59);
+  header.fileSize = decodeOct(buf, 65, 11);
 
   return header;
 };
@@ -99,12 +99,12 @@ let decodeNewc = function(buf) {
   header.gid = decodeHex(buf, 30);
   header.nlink = decodeHex(buf, 38);
   header.mtime = new Date(decodeHex(buf, 46));
-  header.filesize = decodeHex(buf, 54);
+  header.fileSize = decodeHex(buf, 54);
   header.devmajor = decodeHex(buf, 62);
   header.devminor = decodeHex(buf, 70);
   header.rdevmajor = decodeHex(buf, 78);
   header.rdevminor = decodeHex(buf, 86);
-  header.namesize = decodeHex(buf, 94);
+  header.nameSize = decodeHex(buf, 94);
   header.check = decodeHex(buf, 102);
 
   return header;
@@ -112,7 +112,7 @@ let decodeNewc = function(buf) {
 
 let encodeNewc = function(opts) {
   opts.name = padEven(opts.name);
-  if (opts.size % 2 !== 0) opts.size++;
+  if (opts.nameSize % 2 !== 0) opts.nameSize++;
 
   var buf = new Buffer(110 + opts.name.length);
 
@@ -123,12 +123,12 @@ let encodeNewc = function(opts) {
   buf.write(encodeHex(opts.gid, 8), 30);
   buf.write(encodeHex(opts.nlink, 8), 38);
   buf.write(encodeHex(opts.mtime.getTime() / 1000, 8), 46);
-  buf.write(encodeHex(opts.filesize, 8), 54);
+  buf.write(encodeHex(opts.fileSize, 8), 54);
   buf.write(encodeHex(opts.devmajor, 8), 62);
   buf.write(encodeHex(opts.devminor, 8), 70);
   buf.write(encodeHex(opts.rdevmajor, 8), 78);
   buf.write(encodeHex(opts.rdevminor, 8), 86);
-  buf.write(encodeHex(opts.namesize, 8), 94);
+  buf.write(encodeHex(opts.nameSize, 8), 94);
   buf.write(encodeHex(opts.check, 8), 102);
   buf.write(opts.name, 110);
   return buf;
@@ -152,6 +152,6 @@ exports.newc = newc;
 exports.codec = codec;
 
 // Keep 1.0.0 compatibility: odc by default
-// TODO export exports.size = odc.length;
+exports.size = odc.length;
 exports.encode = encodeOdc;
 exports.decode = decodeOdc;

@@ -55,7 +55,7 @@ var Extract = function(opts) {
 
   function onstreamend() {
     self._stream = null;
-    self._buffer.consume(self._header.size);
+    self._buffer.consume(self._header.fileSize);
     self._parse(headers.size, onheader);
     if (!self._locked) oncontinue();
   }
@@ -76,33 +76,33 @@ var Extract = function(opts) {
       return;
     }
 
-    this._parse(header._nameLength, onname);
+    this._parse(header.nameSize, onname);
     oncontinue();
   }
-  
+
   function onname() {
     var header = self._header;
     var b = self._buffer;
     try {
-      self._header.name = b.slice(0, header._nameLength - 1).toString('ascii');
+      self._header.name = b.slice(0, header.nameSize - 1).toString('ascii');
     } catch (err) {
       self.emit('error', err);
     }
-    b.consume(header._nameLength);
+    b.consume(header.nameSize);
 
-    if(header.name === 'TRAILER!!!') return this._cb();
+    if (header.name === 'TRAILER!!!') return this._cb();
 
-    if (self._header.size === 0) {
+    if (self._header.fileSize === 0) {
       self._parse(headers.size, onheader);
       self.emit('entry', header, emptyStream(self, self._offset), onunlock);
       return;
     }
-    
+
 
     self._stream = new Source(self, self._offset);
     self.emit('entry', self._header, self._stream, onunlock);
     self._locked = true;
-    self._parse(self._header.size, onstreamend);
+    self._parse(self._header.fileSize, onstreamend);
     oncontinue();
   }
 
