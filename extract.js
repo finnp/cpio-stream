@@ -33,6 +33,7 @@ var Extract = function(opts) {
   this._buffer = bl();
   this._missing = 0;
   this._onparse = noop;
+  this._codec = headers.odc;
   this._header = null;
   this._stream = null;
   this._overflow = null;
@@ -44,6 +45,7 @@ var Extract = function(opts) {
   var b = self._buffer;
 
   function oncontinue() {
+    console.log('oncontinue()');
     self._continue();
   }
 
@@ -56,48 +58,70 @@ var Extract = function(opts) {
   function onstreamend() {
     self._stream = null;
     self._buffer.consume(self._header.fileSize);
-    self._parse(headers.size, onheader);
+    self._parseTransparent(headers.odc.magic.length, onmagic);
     if (!self._locked) oncontinue();
   }
 
-  function onheader() {
-    var b = self._buffer;
-    var header;
+  function onmagic() {
+    console.log('onmagic()');
     try {
-      header = self._header = headers.decode(b.slice(0, headers.size));
+      self._codec = headers.codec(self._buffer);
+      console.log('Installing codec ' + JSON.stringify(self._codec));
     } catch (err) {
       self.emit('error', err);
     }
-    b.consume(headers.size);
+    // Do not consume anything, just keep going with the rest of header
+    self._parse(self._codec.length - self._codec.magic.length, onheader);
+    oncontinue();
+  }
 
+  function onheader() {
+    console.log('onheader()');
+    var b = self._buffer;
+    var header;
+    var codec = self._codec;
+    try {
+      header = self._header = codec.decode(b.slice(0, codec.length));
+      console.log('onheader(): decoded header ' + JSON.stringify(header));
+    } catch (err) {
+      self.emit('error', err);
+    }
+    b.consume(codec.length);
+    console.log('Buffer after consuming ' + codec.length + ' bytes: ' + b);
+    console.log('Length: ' + b.length);
     if (!header) {
-      self._parse(headers.size, onheader);
+      self._parseTransparent(codec.length, onmagic);
       oncontinue();
       return;
     }
 
-    this._parse(header.nameSize, onname);
+    self._parse(header.nameSize, onname);
     oncontinue();
   }
 
   function onname() {
+    console.log('onname()');
     var header = self._header;
+    var codec = self._codec;
     var b = self._buffer;
     try {
+      console.log('onname(): slicing ' + b + ' from 0 to ' + header.nameSize);
       self._header.name = b.slice(0, header.nameSize - 1).toString('ascii');
+      console.log('onname(): name = ' + self._header.name);
     } catch (err) {
       self.emit('error', err);
     }
+    console.log('onname(): consuming ' + header.nameSize + ' bytes from ' + b);
     b.consume(header.nameSize);
 
     if (header.name === 'TRAILER!!!') return this._cb();
 
     if (self._header.fileSize === 0) {
-      self._parse(headers.size, onheader);
+      console.log('onname(): fileSize = 0, _parse=(' + codec.length + ', onmagic)');
+      self._parse(codec.length, onmagic);
       self.emit('entry', header, emptyStream(self, self._offset), onunlock);
       return;
     }
-
 
     self._stream = new Source(self, self._offset);
     self.emit('entry', self._header, self._stream, onunlock);
@@ -106,7 +130,8 @@ var Extract = function(opts) {
     oncontinue();
   }
 
-  this._parse(headers.size, onheader);
+  //this._parse(headers.size, onheader);
+  this._parseTransparent(headers.odc.magic.length, onmagic);
 };
 
 util.inherits(Extract, Writable);
@@ -122,8 +147,21 @@ Extract.prototype.destroy = function(err) {
 
 Extract.prototype._parse = function(size, onparse) {
   if (this._destroyed) return;
+  console.log('----------\n_parse(): _offset = ' + this._offset);
   this._offset += size;
+  console.log('_parse(): Progressing offset to ' + this._offset);
   this._missing = size;
+  console.log('_parse(): _missing = ' + this._missing);
+  this._onparse = onparse;
+  // console.log('_parse(): onparse = ' + onparse);
+};
+
+Extract.prototype._parseTransparent = function(size, onparse) {
+  if (this._destroyed) return;
+  console.log('----------\n_parseTransparent(): Not progressing _offset');
+  console.log('_parseTransparent(): _offset = ' + this._offset);
+  this._missing = size;
+  console.log('_parseTransparent(): _missing = ' + this._missing);
   this._onparse = onparse;
 };
 
@@ -145,15 +183,17 @@ Extract.prototype._write = function(data, enc, cb) {
   // we do not reach end-of-chunk now. just forward it
 
   if (data.length < missing) {
+    console.log('_write(): need ' + missing + ' bytes but received only ' + data.length + ', passing...');
     this._missing -= data.length;
     this._overflow = null;
     if (s) return s.write(data, cb);
+    console.log('Appending partial ' + data + ' to buffer ' + b);
     b.append(data);
     return cb();
   }
 
   // end-of-chunk. the parser should call cb.
-
+  console.log('_write(): cb()');
   this._cb = cb;
   this._missing = 0;
 
@@ -164,8 +204,11 @@ Extract.prototype._write = function(data, enc, cb) {
   }
 
   if (s) s.end(data);
-  else b.append(data);
-
+  else {
+    console.log('Appending complete ' + data + ' to buffer ' + b);
+    b.append(data);
+    console.log('Buffer after append(): ' + b);
+  }
   this._overflow = overflow;
   this._onparse();
 };
