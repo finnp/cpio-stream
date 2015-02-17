@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/jhinrichsen/cpio-streams.png?branch=master)](https://travis-ci.org/jhinrichsen/cpio-streams)
 [![BSD](http://b.repl.ca/v1/license-MIT-blue.png)](http://en.wikipedia.org/wiki/BSD_licenses)
-[![ECMAScript](http://b.repl.ca/v1/language-javascript-blue.png)](http://www.ecmascript.org/)
+[![ECMAScript](http://b.repl.ca/v1/language-ECMAScript-blue.png)](http://www.ecmascript.org/)
 
 
 
