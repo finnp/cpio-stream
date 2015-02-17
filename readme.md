@@ -1,6 +1,6 @@
 # cpio-stream
 
-[![Build Status](https://travis-ci.org/jhinrichsen/cpio-streams.png?branch=master)](https://travis-ci.org/jhinrichsen/cpio-streams)
+[![Build Status](https://travis-ci.org/jhinrichsen/cpio-stream.png?branch=master)](https://travis-ci.org/jhinrichsen/cpio-stream)
 [![BSD](http://b.repl.ca/v1/license-MIT-blue.png)](http://en.wikipedia.org/wiki/BSD_licenses)
 [![ECMAScript](http://b.repl.ca/v1/language-ECMAScript-blue.png)](http://www.ecmascript.org/)
 
