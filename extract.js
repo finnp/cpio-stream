@@ -14,7 +14,7 @@ var PassThrough = require('stream').PassThrough;
  */
 var hex = function (n) {
     return n + '(0x' + n.toString(16) + ')';
-}
+};
 
 var noop = function () {
     return undefined;

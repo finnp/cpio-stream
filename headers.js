@@ -53,7 +53,7 @@ var newc = {
  */
 var hex = function (n) {
     return n + '(0x' + n.toString(16) + ')';
-}
+};
 
 /**
  * Decode an octal encoded <code>bin</code> or <code>odc</code> buffer.

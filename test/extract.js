@@ -93,31 +93,36 @@ module.exports = function (test) {
             unpack)
     });
 
-    test('RPM large payload', function (t) {
+    test(
+        'RPM large payload, need to fetch ' +
+        'http://ftp.hosteurope.de/mirror/' +
+        'ftp.suse.com/pub/suse/discontinued/i386/9.3/suse/src/' +
+        'OpenOffice_org1-1.1.3-4.src.rpm',
+        function (t) {
 
-        t.timeoutAfter(10000);
+            t.timeoutAfter(10000);
 
-        var unpack = cpio.extract(),
-            n = 0;
+            var unpack = cpio.extract(),
+                n = 0;
 
-        unpack.on('entry', function (header, stream, cb) {
-            console.log('entry()');
-            n = n + 1;
+            unpack.on('entry', function (header, stream, cb) {
+                console.log('entry()');
+                n = n + 1;
 
-            stream.on('end', function () {
-                cb()
+                stream.on('end', function () {
+                    cb()
+                })
+                stream.resume();
+            });
+
+            unpack.on('finish', function () {
+                console.log('finish()');
+                t.equal(n, 155, 'all files present');
+                t.end();
             })
-            stream.resume();
+
+            fs.createReadStream(path.join(__dirname,
+                'fixtures/OpenOffice_org1-1.1.3-4.src.cpio')).pipe(
+                unpack);
         });
-
-        unpack.on('finish', function () {
-            console.log('finish()');
-            t.equal(n, 155, 'all files present');
-            t.end();
-        })
-
-        fs.createReadStream(path.join(__dirname,
-            'fixtures/OpenOffice_org1-1.1.3-4.src.cpio')).pipe(
-            unpack);
-    });
 }
