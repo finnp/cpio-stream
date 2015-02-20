@@ -47,6 +47,15 @@ var newc = {
 };
 
 /**
+ * @method hex
+ * @param {Number} anything
+ * @return dec and hex representation of n
+ */
+var hex = function (n) {
+    return n + '(0x' + n.toString(16) + ')';
+};
+
+/**
  * Decode an octal encoded <code>bin</code> or <code>odc</code> buffer.
  *
  * @method decodeOct
@@ -189,6 +198,9 @@ var alignedName = function (codec, header) {
         p = codec.padIndex(pos),
         // Number of bytes to consume: original size + pad
         n = header.nameSize + p - pos;
+    console.log('alignedName: pos = ' + hex(pos) + ', p = ' +
+        hex(p) + ', n = ' +
+        hex(n));
     return n;
 };
 
@@ -209,21 +221,25 @@ var alignedName = function (codec, header) {
  * @return padded nameIndex
  */
 var alignedFileSize = function (codec, header) {
-    var pos = codec.length + codec.alignedName(header.nameSize) +
-        header.fileSize,
+    var pos = codec.length + alignedName(codec, header) + header.fileSize,
         p = codec.padIndex(pos),
         // Number of bytes to consume: original size + pad
         n = header.fileSize + p - pos;
+    console.log('alignedFileSize: pos = ' + hex(pos) + ', p = ' +
+        hex(p) + ', n = ' +
+        hex(n));
     return n;
 };
 
 var decodeHex = function (buf, pos, n) {
     n = n || 8;
-    return parseInt(buf.toString('ascii', pos, pos + n), 16);
+    return parseInt(buf.toString('ascii', pos, pos + n),
+        16);
 };
 
 var encodeHex = function (number, bytes) {
-    var s = (Math.min(number, Math.pow(16, bytes) - 1)).toString(16),
+    var s = (Math.min(number, Math.pow(16, bytes) - 1)).toString(
+            16),
         header = '00000000';
     return header.substring(0, 8 - s.length) + s;
 };
@@ -274,7 +290,8 @@ var encodeNewc = function (opts) {
     buf.write(encodeHex(opts.uid, 8), 22);
     buf.write(encodeHex(opts.gid, 8), 30);
     buf.write(encodeHex(opts.nlink, 8), 38);
-    buf.write(encodeHex(opts.mtime.getTime() / 1000, 8), 46);
+    buf.write(encodeHex(opts.mtime.getTime() / 1000, 8),
+        46);
     buf.write(encodeHex(opts.fileSize, 8), 54);
     buf.write(encodeHex(opts.devmajor, 8), 62);
     buf.write(encodeHex(opts.devminor, 8), 70);
@@ -337,7 +354,7 @@ newc.alignedName = function (header) {
     return alignedName(newc, header);
 };
 newc.alignedFileSize = function (header) {
-    return alignedName(newc, header);
+    return alignedFileSize(newc, header);
 };
 
 // Standard exports
