@@ -1,3 +1,4 @@
+var assert = require('assert');
 var cpio = require('../')
 var fs = require('fs')
 var path = require('path')
@@ -93,8 +94,7 @@ module.exports = function (test) {
             unpack)
     });
 
-    test(
-        'RPM large payload, need to fetch ' +
+    test('RPM large payload, need to fetch ' +
         'http://ftp.hosteurope.de/mirror/' +
         'ftp.suse.com/pub/suse/discontinued/i386/9.3/suse/src/' +
         'OpenOffice_org1-1.1.3-4.src.rpm',
@@ -106,23 +106,32 @@ module.exports = function (test) {
                 n = 0;
 
             unpack.on('entry', function (header, stream, cb) {
-                console.log('entry()');
+                console.log('* entry(' + n + '): ' + JSON.stringify(
+                    header));
                 n = n + 1;
 
+                assert.equal(header.name[0], '.');
+                assert.equal(header.name[1], '/');
+
                 stream.on('end', function () {
-                    cb()
-                })
+                    cb();
+                });
+                // Just auto drain
                 stream.resume();
             });
 
             unpack.on('finish', function () {
                 console.log('finish()');
-                t.equal(n, 155, 'all files present');
+                // t.equal(n, 138, 'all files present');
+                t.equal(n, 10, 'all files present');
                 t.end();
             })
 
             fs.createReadStream(path.join(__dirname,
-                'fixtures/OpenOffice_org1-1.1.3-4.src.cpio')).pipe(
+                //'fixtures/OpenOffice_org1-1.1.3-4.src.cpio'
+                // 'fixtures/FlightGear-0.9.3-91.i586.cpio'
+                'fixtures/bonnie++-1.02-335.i586.cpio'
+            )).pipe(
                 unpack);
         });
 }

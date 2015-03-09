@@ -8,6 +8,14 @@ var Writable = require('stream').Writable;
 var PassThrough = require('stream').PassThrough;
 
 /**
+ * Extract function name from function
+ */
+var fnname = function (fn) {
+    var s = "" + fn;
+    return s.split(/\s+/).slice(1, 3);
+}
+
+/**
  * @method hex
  * @param {Number} anything
  * @return dec and hex representation of n
@@ -21,6 +29,7 @@ var noop = function () {
 };
 
 var Source = function (self, offset) {
+    console.log('Creating new source(' + self + ', ' + offset + ')');
     this.parent = self;
     this.offset = offset;
     PassThrough.call(this);
@@ -55,6 +64,7 @@ var Extract = function (opts) {
     this.cb = null;
     this.locked = false;
     this.destroyed = false;
+    this.consumed = 0;
 
     var self = this;
 
@@ -88,7 +98,12 @@ var Extract = function (opts) {
             ' bytes');
         console.log('Buffer before consumption:' + self.buffer);
         self.buffer.consume(fsa);
+        self.consumed += fsa;
+        console.log('Consumed: ' + hex(self.consumed) + ', offset: ' +
+            hex(self.offset));
+        // TODO
         self.parseTransparent(headers.odc.magic.length, onmagic);
+        // self.parse(headers.odc.magic.length, onmagic);
         if (!self.locked) {
             oncontinue();
         }
@@ -102,27 +117,23 @@ var Extract = function (opts) {
             b = self.buffer,
             nsa = codec.alignedName(header);
         try {
-            console.log('onname(): slicing ' + b +
-                ' from 0 to ' +
-                hex(ns));
-            self.header.name = b.slice(0, ns -
-                1).toString(
-                'ascii');
-            console.log(
-                'onname(): name = ' + self.header.name
-            );
+            console.log('onname(): slicing from 0 to ' + hex(ns));
+            self.header.name = b.slice(0, ns - 1).toString('ascii');
+            console.log('onname(): name = ' + self.header.name);
         } catch (err) {
+            console.log('onname(): error ' + err);
             self.emit('error', err);
         }
 
         console.log('Padding name length from ' + hex(ns) +
             ' to ' +
             hex(nsa) +
-            ' for codec ' + codec.id
-        );
-        console.log('onname(): consuming ' + hex(nsa) +
-            ' bytes from ' + b);
+            ' for codec ' + codec.id);
+        console.log('onname(): consuming ' + hex(nsa) + ' bytes');
         b.consume(nsa);
+        self.consumed += nsa;
+        console.log('Consumed: ' + hex(self.consumed) + ', offset: ' +
+            hex(self.offset));
 
         if (header.name === 'TRAILER!!!') {
             console.log('self = ' + self);
@@ -138,17 +149,16 @@ var Extract = function (opts) {
             console.log('onname(): fileSize = 0, parse=(' +
                 hex(codec.length) +
                 ', onmagic)');
-            self.parse(codec.length, onmagic);
+            self.parse(codec.length, onheader);
             self.emit('entry', header, emptyStream(self, self.offset),
                 onunlock);
             return;
         }
 
         self.stream = new Source(self, self.offset);
-        self.emit('entry', self.header, self.stream,
-            onunlock);
+        self.emit('entry', self.header, self.stream, onunlock);
         self.locked = true;
-        self.parse(self.header.fileSize, onstreamend);
+        self.parse(codec.alignedFileSize(header), onstreamend);
         oncontinue();
     }
 
@@ -165,12 +175,17 @@ var Extract = function (opts) {
             self.emit('error', err);
         }
         b.consume(codec.length);
-        console.log('Buffer after consuming ' + hex(codec.length) +
+        self.consumed += codec.length;
+        console.log('Consumed: ' + hex(self.consumed) + ', offset: ' +
+            hex(self.offset));
+        console.log('onheader(): Buffer after consuming ' + hex(codec.length) +
             ' bytes: ' + b);
-        console.log('Length: ' + hex(b.length));
+        console.log('onheader(): Length: ' + hex(b.length));
         if (!header) {
-            self.parseTransparent(codec.length,
-                onmagic);
+            console.log('onheader(): No header!');
+            // TODO
+            // self.parseTransparent(codec.length, onmagic);
+            self.parse(codec.length, onmagic);
             oncontinue();
             return;
         }
@@ -189,15 +204,13 @@ var Extract = function (opts) {
             self.emit('error', err);
         }
         // Do not consume anything, just keep going with the rest of header
-        self.parse(self.codec.length - self.codec.magic
-            .length,
+        self.parse(self.codec.length - self.codec.magic.length,
             onheader);
         oncontinue();
     }
 
-    //this.parse(headers.size, onheader);
-    this.parseTransparent(headers.odc.magic.length,
-        onmagic);
+    // TODO this.parse(headers.size, onheader);
+    this.parseTransparent(headers.odc.magic.length, onmagic);
 };
 
 util.inherits(Extract, Writable);
@@ -245,11 +258,11 @@ Extract.prototype.parseTransparent =
     };
 
 Extract.prototype.cont = function (err) {
+    console.log('cont()');
     if (this.destroyed) {
         return;
     }
     var cb = this.cb;
-    console.log('cont(): setting cb = noop');
     this.cb = noop;
     if (this.overflow) {
         this.write(this.overflow, undefined, cb);
@@ -260,6 +273,7 @@ Extract.prototype.cont = function (err) {
 };
 
 Extract.prototype.write = function (data, enc, cb) {
+    console.log('write() callback');
     if (this.destroyed) {
         return;
     }
@@ -284,12 +298,15 @@ Extract.prototype.write = function (data, enc, cb) {
         this.missing -= data.length;
         this.overflow = null;
         if (s) {
+            console.log('Writing data to stream, cb = ' + cb);
             return s.write(data, cb);
         }
-        console.log('Appending partial ' +
-            data + ' to buffer ' + b);
+        console.log('Appending partial chunk');
         b.append(data);
-        return cb();
+        if (cb) {
+            return cb();
+        }
+        return;
     }
 
     // end-of-chunk. the parser should call cb.
@@ -301,18 +318,19 @@ Extract.prototype.write = function (data, enc, cb) {
     var overflow = null;
     if (data.length > missing) {
         overflow = data.slice(missing);
+        console.log('Saved overflow');
         data = data.slice(0, missing);
     }
 
     if (s) {
         s.end(data);
     } else {
-        console.log('Appending complete ' + data + ' to buffer ' + b);
-        console.log('data: ' + JSON.stringify(data));
+        console.log('Appending complete chunk');
         b.append(data);
-        console.log('Buffer after append(): ' + b);
+        // console.log('Buffer after append(): ' + b);
     }
     this.overflow = overflow;
+    console.log('Continueing with function ' + fnname(this.onparse));
     this.onparse();
 };
 
