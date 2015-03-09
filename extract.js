@@ -265,14 +265,14 @@ Extract.prototype.cont = function (err) {
     var cb = this.cb;
     this.cb = noop;
     if (this.overflow) {
-        this.write(this.overflow, undefined, cb);
+        this._write(this.overflow, undefined, cb);
     } else {
         console.log("cont(): calling cb() = " + cb);
         cb();
     }
 };
 
-Extract.prototype.write = function (data, enc, cb) {
+Extract.prototype._write = function (data, enc, cb) {
     console.log('write() callback');
     if (this.destroyed) {
         return;
