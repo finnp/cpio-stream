@@ -1,8 +1,9 @@
-var assert = require('assert');
+var assert = require('assert'),
+    fs = require('fs'),
+    path = require('path'),
+    concat = require('concat-stream'),
+    log = require('loglevel');
 var cpio = require('../')
-var fs = require('fs')
-var path = require('path')
-var concat = require('concat-stream')
 
 module.exports = function (test) {
     test('simple unpack', function (t) {
@@ -106,7 +107,7 @@ module.exports = function (test) {
                 n = 0;
 
             unpack.on('entry', function (header, stream, cb) {
-                console.log('* entry(' + n + '): ' + JSON.stringify(
+                log.info('entry(' + n + '): ' + JSON.stringify(
                     header));
                 n = n + 1;
 
@@ -121,7 +122,7 @@ module.exports = function (test) {
             });
 
             unpack.on('finish', function () {
-                console.log('finish()');
+                log.debug('finish()');
                 // t.equal(n, 138, 'all files present');
                 t.equal(n, 13, 'all files present');
                 t.end();

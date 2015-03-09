@@ -2,6 +2,8 @@
 
 "use strict";
 
+var log = require('loglevel');
+
 /**
  * Codec implementation.
  * @class Codec
@@ -198,7 +200,7 @@ var alignedName = function (codec, header) {
         p = codec.padIndex(pos),
         // Number of bytes to consume: original size + pad
         n = header.nameSize + p - pos;
-    console.log('alignedName: pos = ' + hex(pos) + ', p = ' +
+    log.debug('alignedName: pos = ' + hex(pos) + ', p = ' +
         hex(p) + ', n = ' +
         hex(n));
     return n;
@@ -225,7 +227,7 @@ var alignedFileSize = function (codec, header) {
         p = codec.padIndex(pos),
         // Number of bytes to consume: original size + pad
         n = header.fileSize + p - pos;
-    console.log('alignedFileSize: pos = ' + hex(pos) + ', p = ' +
+    log.debug('alignedFileSize: pos = ' + hex(pos) + ', p = ' +
         hex(p) + ', n = ' +
         hex(n));
     return n;

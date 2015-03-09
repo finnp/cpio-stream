@@ -21,13 +21,14 @@
   "homepage": "https://github.com/jhinrichsen/cpio-stream",
   "dependencies": {
     "bl": "^0.9.3",
-    "end-of-stream": "^1.1.0"
+    "end-of-stream": "^1.1.0",
+    "loglevel": "^1.2.0"
   },
   "devDependencies": {
     "concat-stream": "^1.4.7",
     "tape": "^3.0.3"
   },
-  "jshintConfig": { 
+  "jshintConfig": {
     "enforceall": true,
     "maxlen": "79",
     "nocomma": false,
