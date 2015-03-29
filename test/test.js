@@ -5,4 +5,3 @@ var extract = require('./extract.js')
 
 pack(test)
 extract(test)
-

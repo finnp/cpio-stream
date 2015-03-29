@@ -6,7 +6,7 @@ var path = require('path')
 module.exports = function (test) {
   test('pack file', function (t) {
     t.plan(1)
-    
+
     var pack = cpio.pack()
 
     pack.entry({
@@ -23,12 +23,12 @@ module.exports = function (test) {
       var expected = fs.readFileSync(path.join(__dirname, 'fixtures/onefile.cpio'))
       t.deepEqual(data, expected)
     }))
-    
+
   })
 
   test('pack file stream', function (t) {
     t.plan(2)
-    
+
     var pack = cpio.pack()
 
     var entry = pack.entry({
@@ -51,7 +51,7 @@ module.exports = function (test) {
       var expected = fs.readFileSync(path.join(__dirname, 'fixtures/onefile.cpio'))
       t.deepEqual(data, expected)
     }))
-    
+
   })
-  
+
 }

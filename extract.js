@@ -5,15 +5,15 @@ var headers = require('./headers')
 var Writable = require('stream').Writable
 var PassThrough = require('stream').PassThrough
 
-var noop = function() {}
+var noop = function () {}
 
-var emptyStream = function(self, offset) {
+var emptyStream = function (self, offset) {
   var s = new Source(self, offset)
   s.end()
   return s
 }
 
-var Source = function(self, offset) {
+var Source = function (self, offset) {
   this._parent = self
   this.offset = offset
   PassThrough.call(this)
@@ -21,11 +21,11 @@ var Source = function(self, offset) {
 
 util.inherits(Source, PassThrough)
 
-Source.prototype.destroy = function(err) {
+Source.prototype.destroy = function (err) {
   this._parent.destroy(err)
 }
 
-var Extract = function(opts) {
+var Extract = function (opts) {
   if (!(this instanceof Extract)) return new Extract(opts)
   Writable.call(this, opts)
 
@@ -41,26 +41,25 @@ var Extract = function(opts) {
   this._destroyed = false
 
   var self = this
-  var b = self._buffer
 
-  function oncontinue() {
+  function oncontinue () {
     self._continue()
   }
 
-  function onunlock(err) {
+  function onunlock (err) {
     self._locked = false
     if (err) return self.destroy(err)
     if (!self._stream) oncontinue()
   }
 
-  function onstreamend() {
+  function onstreamend () {
     self._stream = null
     self._buffer.consume(self._header.size)
     self._parse(headers.size, onheader)
     if (!self._locked) oncontinue()
   }
 
-  function onheader() {
+  function onheader () {
     var b = self._buffer
     var header
     try {
@@ -79,8 +78,8 @@ var Extract = function(opts) {
     this._parse(header._nameLength, onname)
     oncontinue()
   }
-  
-  function onname() {
+
+  function onname () {
     var header = self._header
     var b = self._buffer
     try {
@@ -90,14 +89,13 @@ var Extract = function(opts) {
     }
     b.consume(header._nameLength)
 
-    if(header.name === 'TRAILER!!!') return this._cb()
+    if (header.name === 'TRAILER!!!') return this._cb()
 
     if (self._header.size === 0) {
       self._parse(headers.size, onheader)
       self.emit('entry', header, emptyStream(self, self._offset), onunlock)
       return
     }
-    
 
     self._stream = new Source(self, self._offset)
     self.emit('entry', self._header, self._stream, onunlock)
@@ -111,7 +109,7 @@ var Extract = function(opts) {
 
 util.inherits(Extract, Writable)
 
-Extract.prototype.destroy = function(err) {
+Extract.prototype.destroy = function (err) {
   if (this._destroyed) return
   this._destroyed = true
 
@@ -120,14 +118,14 @@ Extract.prototype.destroy = function(err) {
   if (this._stream) this._stream.emit('close')
 }
 
-Extract.prototype._parse = function(size, onparse) {
+Extract.prototype._parse = function (size, onparse) {
   if (this._destroyed) return
   this._offset += size
   this._missing = size
   this._onparse = onparse
 }
 
-Extract.prototype._continue = function(err) {
+Extract.prototype._continue = function (err) {
   if (this._destroyed) return
   var cb = this._cb
   this._cb = noop
@@ -135,7 +133,7 @@ Extract.prototype._continue = function(err) {
   else cb()
 }
 
-Extract.prototype._write = function(data, enc, cb) {
+Extract.prototype._write = function (data, enc, cb) {
   if (this._destroyed) return
 
   var s = this._stream
