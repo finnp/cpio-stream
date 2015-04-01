@@ -1,7 +1,10 @@
-var test = require('tape')
+var test = require('tape'),
+  pack = require('./pack'),
+  packNewc = require('./pack-newc'),
+  extract = require('./extract'),
+  header = require('./header')
 
-var pack = require('./pack.js')
-var extract = require('./extract.js')
-
-pack(test)
-extract(test)
+// header(test)
+// pack(test)
+packNewc(test)
+// extract(test)
