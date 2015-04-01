@@ -14,7 +14,8 @@ module.exports = function (test) {
       mtime: new Date(1419354218000),
       mode: 33188,
       uid: 501,
-      gid: 20
+      gid: 20,
+      fileSize: 12
     }, 'hello world\n')
 
     pack.finalize()
@@ -37,8 +38,9 @@ module.exports = function (test) {
       mode: 33188,
       uid: 501,
       gid: 20,
-      size: 12
+      fileSize: 12
     }, function (err) {
+      if (err) console.log(err)
       t.ok(!err)
       pack.finalize()
     })
@@ -49,6 +51,8 @@ module.exports = function (test) {
 
     pack.pipe(concat(function (data) {
       var expected = fs.readFileSync(path.join(__dirname, 'fixtures/onefile.cpio'))
+      // console.log('Expected:' + expected)
+      // console.log('Data:    ' + data)
       t.deepEqual(data, expected)
     }))
 
