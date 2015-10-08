@@ -17,11 +17,11 @@
   },
   "homepage": "https://github.com/finnp/cpio-stream",
   "dependencies": {
-    "bl": "^0.9.3",
+    "bl": "^1.0.0",
     "end-of-stream": "^1.1.0"
   },
   "devDependencies": {
     "concat-stream": "^1.4.7",
-    "tape": "^3.0.3"
+    "tape": "^4.2.1"
   }
 }
