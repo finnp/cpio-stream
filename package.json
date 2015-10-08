@@ -2,7 +2,7 @@
   "name": "cpio-stream",
   "version": "1.0.0",
   "description": "streaming cpio parser and packer",
-  "main": "index.js",
+  "main": "lib",
   "scripts": {
     "test": "node test/test.js"
   },
