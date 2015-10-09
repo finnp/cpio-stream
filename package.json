@@ -11,6 +11,9 @@
     "url": "https://github.com/finnp/cpio-stream.git"
   },
   "author": "Finn Pauls",
+  "contributors": [
+    "Jesús Leganés Combarro 'piranna' <piranna@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/finnp/cpio-stream/issues"
