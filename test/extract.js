@@ -4,7 +4,7 @@ var path = require('path')
 var concat = require('concat-stream')
 
 module.exports = function (test) {
-  test('simple unpack', function (t) {
+  test('odc: simple unpack', function (t) {
     var unpack = cpio.extract()
     t.plan(9)
     unpack.on('entry', function (header, stream, cb) {
@@ -25,10 +25,10 @@ module.exports = function (test) {
       }))
     })
 
-    fs.createReadStream(path.join(__dirname, 'fixtures/onefile.cpio')).pipe(unpack)
+    fs.createReadStream(path.join(__dirname, 'fixtures/odc/onefile.cpio')).pipe(unpack)
   })
 
-  test('multiple files', function (t) {
+  test('odc: multiple files', function (t) {
     var unpack = cpio.extract()
 
     var list = [
@@ -55,7 +55,7 @@ module.exports = function (test) {
       t.end()
     })
 
-    fs.createReadStream(path.join(__dirname, 'fixtures/multiple.cpio')).pipe(unpack)
+    fs.createReadStream(path.join(__dirname, 'fixtures/odc/multiple.cpio')).pipe(unpack)
   })
 
 }
