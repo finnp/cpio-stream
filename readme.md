@@ -1,11 +1,15 @@
 # cpio-stream [![Build Status](https://travis-ci.org/finnp/cpio-stream.svg?branch=master)](https://travis-ci.org/finnp/cpio-stream)
-[![NPM](https://nodei.co/npm/cpio-stream.png)](https://nodei.co/npm/cpio-stream/)
+[![NPM](https://nodei.co/npm/cpio-stream.png)](https://nodei.co/npm/cpio-stream)
 
-`cpio-stream` is a streaming cpio packer. It is basically the `cpio` version
-on [tar-stream](https://github.com/mafintosh/tar-stream).
+`cpio-stream` is a streaming cpio packer. It is basically the `cpio` version on
+[tar-stream](https://github.com/mafintosh/tar-stream).
 
-Right now it only implements the `odc` / `old character` format (`--format odc`)
-following [this documentation](http://people.freebsd.org/~kientzle/libarchive/man/cpio.5.txt).
+It fully implements the `odc`/`old character` format (`--format odc`), and can
+extract `newc`/`new character` and `crc`/`new crc` formats (`--format newc` and
+`--format crc`) following
+[libarchive documentation](http://people.freebsd.org/~kientzle/libarchive/man/cpio.5.txt).
+`bin`/`old binary` format and pack of `newc`/`new character` and `crc`/`new CRC`
+formats could be added in the future.
 
 ## Packing
 
@@ -39,7 +43,7 @@ extract.on('entry', function (header, stream, callback) {
   stream.on('end', function () {
     callback()
   })
-  
+
   stream.resume() // auto drain
 })
 

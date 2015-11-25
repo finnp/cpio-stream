@@ -4,7 +4,7 @@ var concat = require('concat-stream')
 var path = require('path')
 
 module.exports = function (test) {
-  test('pack file', function (t) {
+  test('odc: pack file', function (t) {
     t.plan(1)
 
     var pack = cpio.pack()
@@ -20,13 +20,12 @@ module.exports = function (test) {
     pack.finalize()
 
     pack.pipe(concat(function (data) {
-      var expected = fs.readFileSync(path.join(__dirname, 'fixtures/onefile.cpio'))
+      var expected = fs.readFileSync(path.join(__dirname, 'fixtures/odc/onefile.cpio'))
       t.deepEqual(data, expected)
     }))
-
   })
 
-  test('pack file stream', function (t) {
+  test('odc: pack file stream', function (t) {
     t.plan(2)
 
     var pack = cpio.pack()
@@ -48,10 +47,8 @@ module.exports = function (test) {
     entry.end()
 
     pack.pipe(concat(function (data) {
-      var expected = fs.readFileSync(path.join(__dirname, 'fixtures/onefile.cpio'))
+      var expected = fs.readFileSync(path.join(__dirname, 'fixtures/odc/onefile.cpio'))
       t.deepEqual(data, expected)
     }))
-
   })
-
 }
