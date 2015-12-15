@@ -1,6 +1,8 @@
 # cpio-stream [![Build Status](https://travis-ci.org/finnp/cpio-stream.svg?branch=master)](https://travis-ci.org/finnp/cpio-stream)
 [![NPM](https://nodei.co/npm/cpio-stream.png)](https://nodei.co/npm/cpio-stream)
 
+[![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
+
 `cpio-stream` is a streaming cpio packer. It is basically the `cpio` version on
 [tar-stream](https://github.com/mafintosh/tar-stream).
 
