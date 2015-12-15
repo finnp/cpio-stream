@@ -136,4 +136,28 @@ module.exports = function (test) {
 
     fs.createReadStream(path.join(__dirname, 'fixtures/newc/multiple.cpio')).pipe(unpack)
   })
+
+  test('crc: dir + file + symlink', function (t) {
+    var unpack = cpio.extract()
+    t.plan(7)
+    unpack.on('entry', function (header, stream, cb) {
+      stream.pipe(concat(function (content) {
+        t.pass(header.name)
+        if (header.name === 'test/b') {
+          t.same(header.type, 'symlink', 'symlink type')
+          t.same(header.linkname, 'a', 'symlink linkname')
+        }
+        if (header.name === 'test/a') {
+          var cksum = 0
+          for (var i = 0; i < content.length; i++) cksum += content.readUInt8(i)
+          t.same(cksum, header.checksum, 'checksum test')
+          t.same(content.toString(), 'test\n')
+        }
+      }))
+      stream.on('end', function () {
+        cb()
+      })
+    })
+    fs.createReadStream(path.join(__dirname, 'fixtures/crc/crc.cpio')).pipe(unpack)
+  })
 }

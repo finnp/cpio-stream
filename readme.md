@@ -8,7 +8,7 @@
 Extraction
 - `odc` / `old character`
 - `newc` / `new character`
-- `crc` / `new crc`
+- `crc` / `new crc` *note: checksum will not be tested nor rejected!*
 
 Packing
 - `odc` / `old character`
