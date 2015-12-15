@@ -6,7 +6,7 @@ var concat = require('concat-stream')
 module.exports = function (test) {
   test('odc: simple unpack', function (t) {
     var unpack = cpio.extract()
-    t.plan(11)
+    t.plan(12)
     unpack.on('entry', function (header, stream, cb) {
       t.equal(header.dev, 262143, 'dev')
       t.equal(header.ino, 1, 'ino')
@@ -18,6 +18,7 @@ module.exports = function (test) {
       t.equal(header.mtime.getTime(), (new Date(1419354218000)).getTime(), 'mtime')
       t.equal(header.name, 'test.txt', 'name')
       t.equal(header.size, 12, 'size')
+      t.equal(header.type, 'file', 'type')
       stream.on('end', function () {
         cb()
       })
@@ -60,9 +61,26 @@ module.exports = function (test) {
     fs.createReadStream(path.join(__dirname, 'fixtures/odc/multiple.cpio')).pipe(unpack)
   })
 
+  test('odc: symlink', function (t) {
+    t.plan(6)
+    var unpack = cpio.extract()
+    unpack.on('entry', function (header, stream, cb) {
+      t.pass('file received')
+      if (header.name === './link') {
+        t.equals(header.type, 'symlink', 'symlink type')
+        t.equals(header.linkname, '.gitignore', 'linkname')
+      }
+      stream.on('end', function () {
+        cb()
+      })
+      stream.resume()
+    })
+    fs.createReadStream(path.join(__dirname, 'fixtures/odc/link.cpio')).pipe(unpack)
+  })
+
   test('newc: simple unpack', function (t) {
     var unpack = cpio.extract()
-    t.plan(13)
+    t.plan(14)
     unpack.on('entry', function (header, stream, cb) {
       t.equal(header.ino, 18522521, 'ino')
       t.equal(header.mode, 33188, 'mode')
@@ -76,6 +94,7 @@ module.exports = function (test) {
       t.equal(header.rdevmajor, 0, 'rdevmajor')
       t.equal(header.rdevminor, 0, 'rdevminor')
       t.equal(header.name, 'test.txt', 'name')
+      t.equal(header.type, 'file', 'type')
       stream.on('end', function () {
         cb()
       })
