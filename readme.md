@@ -4,12 +4,17 @@
 `cpio-stream` is a streaming cpio packer. It is basically the `cpio` version on
 [tar-stream](https://github.com/mafintosh/tar-stream).
 
-It fully implements the `odc`/`old character` format (`--format odc`), and can
-extract `newc`/`new character` and `crc`/`new crc` formats (`--format newc` and
-`--format crc`) following
-[libarchive documentation](http://people.freebsd.org/~kientzle/libarchive/man/cpio.5.txt).
-`bin`/`old binary` format and pack of `newc`/`new character` and `crc`/`new CRC`
-formats could be added in the future.
+## Support
+Extraction
+- `odc` / `old character`
+- `newc` / `new character`
+- `crc` / `new crc`
+
+Packing
+- `odc` / `old character`
+
+Mostly following the [libarchive documentation](http://people.freebsd.org/~kientzle/libarchive/man/cpio.5.txt) documentation.
+Feel free to create pull requests to add additional format support!
 
 ## Packing
 
