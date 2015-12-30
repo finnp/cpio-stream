@@ -93,7 +93,7 @@ module.exports = function (test) {
     })
     pack.pipe(concat(function (data) {
       var expected = fs.readFileSync(path.join(__dirname, 'fixtures/odc/a.cpio'))
-      t.deepEqual(expected, data)
+      t.deepEqual(expected, data, 'equivalent cpio')
     }))
   })
 }
