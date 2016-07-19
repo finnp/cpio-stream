@@ -108,7 +108,9 @@ module.exports = function (test) {
       gid: 20
     }, 'hello world\n')
     pack1.finalize()
-    var result1 = new Promise(res=>pack1.pipe(concat(res)))
+    var result1 = new Promise(function (res) {
+      return pack1.pipe(concat(res))
+    })
 
     var pack2 = cpio.pack()
     pack2.file({
@@ -119,10 +121,12 @@ module.exports = function (test) {
       gid: 20
     }, 'hello world\n')
     pack2.finalize()
-    var result2 = new Promise(res=>pack2.pipe(concat(res)))
+    var result2 = new Promise(function (res) {
+      return pack2.pipe(concat(res))
+    })
 
-    Promise.all([result1, result2]).then(results=>{
-      t.deepEqual(...results)
+    Promise.all([result1, result2]).then(function (result1, result2) {
+      t.deepEqual(result1, result2)
     })
   })
 }
