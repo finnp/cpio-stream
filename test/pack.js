@@ -96,4 +96,34 @@ module.exports = function (test) {
       t.deepEqual(expected, data, 'equivalent cpio')
     }))
   })
+  test('odc: file helper', function (t) {
+    t.plan(1)
+
+    var pack1 = cpio.pack()
+    pack1.entry({
+      name: 'test.txt',
+      mtime: new Date(1419354218000),
+      mode: 33188,
+      uid: 501,
+      gid: 20
+    }, 'hello world\n')
+    pack1.finalize()
+    var result1 = new Promise(res=>pack1.pipe(concat(res)))
+
+    var pack2 = cpio.pack()
+    pack2.file({
+      name: 'test.txt',
+      mtime: new Date(1419354218000),
+      mode: 0o644,
+      uid: 501,
+      gid: 20
+    }, 'hello world\n')
+    pack2.finalize()
+    var result2 = new Promise(res=>pack2.pipe(concat(res)))
+
+    Promise.all([result1, result2]).then(results=>{
+      t.deepEqual(...results)
+    })
+  })
 }
+// vim: et:ts=2:sw=2
