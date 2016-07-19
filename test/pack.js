@@ -125,7 +125,7 @@ module.exports = function (test) {
       return pack2.pipe(concat(res))
     })
 
-    Promise.all([result1, result2]).then(function (result1, result2) {
+    Promise.all([result1, result2]).then(function ([result1, result2]) {
       t.deepEqual(result1, result2)
     })
   })
