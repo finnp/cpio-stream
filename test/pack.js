@@ -116,7 +116,7 @@ module.exports = function (test) {
     pack2.file({
       name: 'test.txt',
       mtime: new Date(1419354218000),
-      mode: 0o644,
+      mode: 420,
       uid: 501,
       gid: 20
     }, 'hello world\n')
