@@ -126,5 +126,36 @@ module.exports = function (test) {
       }))
     }))
   })
+  test('odc: streamed entries', function (t) {
+    t.plan(1)
+
+    var pack1 = cpio.pack()
+    var f1 = pack1.file({name: 'test.txt', size:11}, writeFile2)
+    writeFile1()
+    function writeFile1() {
+      f1.write('hello')
+      f1.write(' world')
+      f1.end()
+    }
+    function writeFile2(err) {
+      var f2 = pack1.file({name: 'test2.txt', size:3}, donePack1)
+      f2.write('foo')
+      f2.end()
+    }
+    function donePack1(err) {
+      pack1.finalize()
+    }
+
+    var pack2 = cpio.pack()
+    pack2.file({name: 'test.txt'}, 'hello world')
+    pack2.file({name: 'test2.txt'}, 'foo')
+    pack2.finalize()
+
+    pack1.pipe(concat(function (result1) {
+      pack2.pipe(concat(function (result2) {
+        t.deepEqual(result1, result2)
+      }))
+    }))
+  })
 }
 // vim: et:ts=2:sw=2
