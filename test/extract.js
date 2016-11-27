@@ -107,6 +107,33 @@ module.exports = function (test) {
     fs.createReadStream(path.join(__dirname, 'fixtures/newc/onefile.cpio')).pipe(unpack)
   })
 
+  test('newc: unpack with strike', function (t) {
+    var name = 'hello.txt'
+    var expected = 'hello\n'
+
+    var unpack = cpio.extract()
+    t.plan(12)
+    unpack.on('entry', function (header, stream, cb) {
+      t.equal(header.size, 6, 'size')
+      t.equal(header._nameLength, 10, 'name length')
+      t.equal(header._sizeStrike, 8, 'size strike')
+      t.equal(header._nameStrike, 10, 'name strike')
+      t.equal(header.name, name, 'name')
+      stream.on('end', function () {
+        name = 'world.txt'
+
+        cb()
+      })
+      stream.pipe(concat(function (content) {
+        t.equal(content.toString(), expected)
+
+        expected = 'world\n'
+      }))
+    })
+
+    fs.createReadStream(path.join(__dirname, 'fixtures/newc/hello.cpio')).pipe(unpack)
+  })
+
   test('newc: multiple files', function (t) {
     var unpack = cpio.extract()
 
