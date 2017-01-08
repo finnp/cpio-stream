@@ -1,6 +1,6 @@
 {
   "name": "cpio-stream",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "streaming cpio parser and packer",
   "main": "lib",
   "scripts": {
