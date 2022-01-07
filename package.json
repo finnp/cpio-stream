@@ -1,6 +1,6 @@
 {
   "name": "cpio-stream",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "streaming cpio parser and packer",
   "main": "lib",
   "scripts": {
@@ -8,23 +8,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/finnp/cpio-stream.git"
+    "url": "https://github.com/Huddly/cpio-stream.git"
   },
   "author": "Finn Pauls",
   "contributors": [
-    "Jesús Leganés Combarro 'piranna' <piranna@gmail.com>"
+    "Jesús Leganés Combarro 'piranna' <piranna@gmail.com>",
+    "Kristian Jerpetjøn <kristian@huddly.com>"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/finnp/cpio-stream/issues"
+    "url": "https://github.com/Huddly/cpio-stream/issues"
   },
-  "homepage": "https://github.com/finnp/cpio-stream",
+  "homepage": "https://github.com/Huddly/cpio-stream",
   "dependencies": {
     "bl": "^1.0.0",
-    "end-of-stream": "^1.1.0"
+    "end-of-stream": "^1.1.0",
+    "readable-stream": "^3.1.1"
   },
   "devDependencies": {
-    "concat-stream": "^1.4.7",
-    "tape": "^4.2.1"
+    "concat-stream": "^2.0.0",
+    "tape": "^4.9.2"
   }
 }
